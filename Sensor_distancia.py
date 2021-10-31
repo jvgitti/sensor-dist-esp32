@@ -8,8 +8,8 @@ led_verd = Pin(5,Pin.OUT)
 led_verm = Pin(21,Pin.OUT)
 
 # coloque aqui as informacoes de sua internet
-WiFi_SSID = "Praieiro_Cima"
-WiFi_PASS = "bachagostoso"
+WiFi_SSID = ""
+WiFi_PASS = ""
 ligado = False
 dist_min = 10
 
@@ -164,7 +164,7 @@ if not wlan.isconnected():
     pass
 print('network config:', wlan.ifconfig())
 # coloque aqui o endereco do broker
-client = MQTTClient('23424234','broker.hivemq.com',port=1883)
+client = MQTTClient('esp32','broker.hivemq.com',port=1883)
 
 client.set_callback(sub_cb)
 client.connect()
@@ -207,6 +207,7 @@ while True:
     
     time.sleep_us(60000)
     client.check_msg()
+
 
 
 
