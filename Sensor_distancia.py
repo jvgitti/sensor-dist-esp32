@@ -1,3 +1,4 @@
+
 import machine, time
 from machine import Pin
 import network
@@ -7,9 +8,10 @@ led_verd = Pin(5,Pin.OUT)
 led_verm = Pin(21,Pin.OUT)
 
 # coloque aqui as informacoes de sua internet
-WiFi_SSID = ""
-WiFi_PASS = ""
+WiFi_SSID = "Praieiro_Cima"
+WiFi_PASS = "bachagostoso"
 ligado = False
+dist_min = 10
 
 
 class Lcd():
@@ -143,12 +145,15 @@ class sensor_dist:
         return cms
         
 def sub_cb(topic, msg):
-  global ligado
-  if msg == b'liga':
-    ligado = True
-  if msg == b'desliga':
-    ligado = False
-
+  if topic == b'sensor/power':
+    global ligado
+    if msg == b'liga':
+      ligado = True
+    if msg == b'desliga':
+      ligado = False
+  elif topic == b'sensor/dist':
+    global dist_min
+    dist_min = eval(msg)
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
@@ -158,15 +163,13 @@ if not wlan.isconnected():
   while not wlan.isconnected():
     pass
 print('network config:', wlan.ifconfig())
-
 # coloque aqui o endereco do broker
-client = MQTTClient('esp32','137.135.83.217')
+client = MQTTClient('23424234','broker.hivemq.com',port=1883)
+
 client.set_callback(sub_cb)
 client.connect()
-
-# coloque aqui o endereco do topico
-client.subscribe(topic="joao/sensor")
-        
+client.subscribe('sensor/power')
+client.subscribe('sensor/dist') 
 sensor = sensor_dist(trigger_pin=13, echo_pin=12)
 lcd = Lcd()
 
@@ -186,7 +189,7 @@ while True:
   
   time.sleep_us(60000)
   
-  client.check_msg()
+  client.wait_msg()
   
   while ligado:
     distance = sensor.distance_cm()
@@ -195,7 +198,7 @@ while True:
     lcd.set_line(1)
     lcd.set_string(str(distance) + ' cm')
   
-    if distance >= 10:
+    if distance >= dist_min:
       led_verd.value(1)
       led_verm.value(0)
     else:
@@ -204,4 +207,7 @@ while True:
     
     time.sleep_us(60000)
     client.check_msg()
+
+
+
 
